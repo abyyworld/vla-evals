@@ -1,4 +1,4 @@
-# policy-eval-harness
+# vla-evals
 
 **Checkpoint registry and a statistically honest evaluation harness for robot policies.**
 
@@ -7,34 +7,52 @@ produced it. Every comparison is paired, interval-estimated, and refuses to
 declare a winner it cannot actually resolve.
 
 ```bash
-git clone https://github.com/abyyworld/policy-eval-harness
-cd policy-eval-harness
+git clone https://github.com/abyyworld/vla-evals
+cd vla-evals
 make install
 make baselines     # confirm the suite discriminates at all
 make demo-gate     # watch the gate reject an injected regression
 ```
 
-Downstream of [`teleop-data-pipeline`](https://github.com/abyyworld/teleop-data-pipeline),
+Downstream of [`teleop-pipeline`](https://github.com/abyyworld/teleop-pipeline),
 which produces the checkpoints and the lineage records this consumes.
 
 ---
 
 ## The finding this repo exists for
 
-A behaviour-cloning policy with an offline action error of **0.0078 rad** and
-**97.9% gripper accuracy** achieves **0.0% closed-loop success** on this suite.
+A behaviour-cloning policy with an offline action error of **0.0077 rad** and
+**98% gripper accuracy** succeeds in **1 of 240 closed-loop episodes**.
 
 | | Offline (`teleop-pipeline eval`) | Closed-loop (`policy-evals run`) |
 | --- | ---: | ---: |
-| action MAE | 0.00779 rad | — |
-| gripper accuracy | 97.9% | — |
-| success rate | — | **0.0%** |
+| action MAE | 0.00773 rad, 95% CI [0.00699, 0.00841] | |
+| gripper accuracy | 98.0% | |
+| success rate | | **0.4%**, 95% CI [0.0%, 1.3%] |
 
-Same checkpoint, same robot description, same units. The cause is concrete: the
-policy's observation contains no goal channel, because the teleoperation
-demonstrations never carried one — the goal lived in the operator's head. The
-offline metric is not wrong, it is answering a different question, and no amount
-of examining it would have revealed this.
+Same checkpoint, same robot description, same units. 55 held-out episodes on the
+left, 240 on the right. Two separate things are wrong with the left column.
+
+**It has no reference point.** 0.0077 rad sounds finished. Repeating the
+previous action scores **0.0036 rad** on the same windows, so the policy is 113%
+worse than doing nothing at all, and it loses at every one of the eight chunk
+offsets rather than trailing early and catching up. `teleop-pipeline` computes
+that baseline on every evaluation for exactly this reason. Quote the policy's
+error on its own and the comparison that would have caught this is the one you
+left out.
+
+**It is answering a different question.** The policy's observation contains no
+goal channel, because the teleoperation demonstrations never carried one: the
+goal lived in the operator's head. So it learned the marginal distribution of
+plausible next actions given the arm's state, which is what the offline metric
+measures. No amount of examining that metric would have revealed it.
+
+The single closed-loop success is worth naming rather than rounding away. It is
+`reach_far` at seed 4807, which ended 4.8 cm from the target against a 5 cm
+threshold: an arm that wandered and stopped just inside the radius. Four tasks,
+60 episodes each, and one of them landed. Reported as 0.4% rather than 0%
+because 0% is a claim the harness cannot support at n=240, and because on a
+different machine that episode may fall the other way.
 
 Full write-up: [`docs/OFFLINE_VS_CLOSED_LOOP.md`](docs/OFFLINE_VS_CLOSED_LOOP.md).
 
@@ -43,7 +61,7 @@ Full write-up: [`docs/OFFLINE_VS_CLOSED_LOOP.md`](docs/OFFLINE_VS_CLOSED_LOOP.md
 ### 1. A registry that refuses untraceable checkpoints
 
 ```bash
-policy-evals registry add ../teleop-data-pipeline/artifacts/policy.pt
+policy-evals registry add ../teleop-pipeline/artifacts/policy.pt
 policy-evals registry list
 policy-evals registry promote a4f894f8 --stage production
 ```
@@ -157,7 +175,7 @@ class MyVLAPolicy:
         ...  # returns [7 joint deltas, gripper target]
 ```
 
-`CheckpointPolicy` (for `teleop-data-pipeline` checkpoints) is the worked example.
+`CheckpointPolicy` (for `teleop-pipeline` checkpoints) is the worked example.
 It validates the observation mapping by name at load time, so a checkpoint
 expecting a column the environment does not supply fails loudly with the
 column's name — rather than silently receiving the wrong number in that slot and

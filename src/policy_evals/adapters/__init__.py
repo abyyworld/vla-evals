@@ -25,7 +25,7 @@ def build_policy(spec: str, **kwargs) -> Policy:
     """Construct a policy from a short spec string.
 
     Built-ins by name (`zero`, `random`, `scripted`, `scripted+noise:0.02`), or a
-    path to an teleop-data-pipeline checkpoint.
+    path to a teleop-pipeline checkpoint.
     """
     if spec == "zero":
         return ZeroPolicy()
