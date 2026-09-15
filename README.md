@@ -78,10 +78,10 @@ Reference policies, and what the suite says about them:
 | Policy | Success |
 | --- | ---: |
 | `zero` (do nothing) | 0.0% |
-| `random` | 0.4% |
+| `random` | 0.0% |
 | `scripted` (oracle, sees the goal) | 100.0% |
-| `scripted+noise:0.05` | 97.9% |
-| `scripted+noise:0.12` | 55.4% |
+| `scripted+noise:0.05` | 98.8% |
+| `scripted+noise:0.12` | 55.0% |
 
 Those three anchors are **asserted in CI**. A benchmark on which a do-nothing
 policy scores well is measuring the environment, not the policy — and every
