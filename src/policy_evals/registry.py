@@ -215,7 +215,7 @@ class Registry:
             train_metrics={
                 k: float(v)
                 for k, v in ((lineage or {}).get("metrics") or {}).items()
-                if isinstance(v, (int, float))
+                if isinstance(v, int | float)
             },
             notes=notes,
             tags=tags or {},
