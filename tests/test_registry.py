@@ -24,7 +24,7 @@ def checkpoint(tmp_path):
             "metrics": {"best_val_loss": 0.301},
         }
         lineage.update(lineage_overrides)
-        (directory / "lineage.json").write_text(json.dumps(lineage))
+        (directory / "lineage.json").write_text(json.dumps(lineage), encoding="utf-8")
         return path
 
     return _make

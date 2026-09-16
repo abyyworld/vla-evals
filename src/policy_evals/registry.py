@@ -105,11 +105,11 @@ class Registry:
     def load(self) -> RegistryIndex:
         if not self.index_path.exists():
             return RegistryIndex()
-        return RegistryIndex.model_validate_json(self.index_path.read_text())
+        return RegistryIndex.model_validate_json(self.index_path.read_text(encoding="utf-8"))
 
     def save(self, index: RegistryIndex) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
-        self.index_path.write_text(index.model_dump_json(indent=2))
+        self.index_path.write_text(index.model_dump_json(indent=2), encoding="utf-8")
 
     # -- queries -----------------------------------------------------------
 
@@ -236,7 +236,7 @@ class Registry:
         ]
         for candidate in candidates:
             if candidate and Path(candidate).exists():
-                return json.loads(Path(candidate).read_text())
+                return json.loads(Path(candidate).read_text(encoding="utf-8"))
 
         if require:
             raise RegistryError(

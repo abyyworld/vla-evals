@@ -107,12 +107,12 @@ class BenchmarkResult:
     def save(self, path: Path) -> Path:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(self.to_dict(), indent=2))
+        path.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
         return path
 
     @staticmethod
     def load(path: Path) -> BenchmarkResult:
-        data = json.loads(Path(path).read_text())
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
         return BenchmarkResult(
             benchmark=data["benchmark"],
             policy=data["policy"],
@@ -137,7 +137,7 @@ class BenchmarkSpec:
 
     @staticmethod
     def load(path: Path) -> BenchmarkSpec:
-        data = yaml.safe_load(Path(path).read_text())
+        data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
         return BenchmarkSpec(
             name=data["name"],
             episodes_per_task=int(data.get("episodes_per_task", 50)),

@@ -227,7 +227,9 @@ def compare(
         console.print(table)
 
     path = report_mod.write(Path(out), report_mod.render_comparison(result))
-    Path(out).with_suffix(".json").write_text(json.dumps(result.to_dict(), indent=2))
+    Path(out).with_suffix(".json").write_text(
+        json.dumps(result.to_dict(), indent=2), encoding="utf-8"
+    )
     console.print(f"\nreport: {path}")
 
     if fail_on_regression and result.verdict != "PASS":
@@ -281,7 +283,7 @@ def gate(
         console.print(f"  · {reason}")
 
     report_mod.write(out_dir / "gate.md", report_mod.render_comparison(result))
-    (out_dir / "gate.json").write_text(json.dumps(result.to_dict(), indent=2))
+    (out_dir / "gate.json").write_text(json.dumps(result.to_dict(), indent=2), encoding="utf-8")
 
     if result.verdict != "PASS":
         raise typer.Exit(code=1)

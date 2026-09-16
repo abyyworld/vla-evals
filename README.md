@@ -14,6 +14,19 @@ make baselines     # confirm the suite discriminates at all
 make demo-gate     # watch the gate reject an injected regression
 ```
 
+The `make` targets are thin wrappers and assume a Unix shell. macOS needs
+nothing extra. On Windows there is no `make`, so call the same entry points
+directly:
+
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\python -m pip install -U pip
+.venv\Scripts\pip install -e ".[dev]"
+.venv\Scripts\policy-evals run scripted --benchmark conf/benchmarks/manipulation_v1.yaml
+```
+
+Tested on Linux, macOS and Windows in CI.
+
 Downstream of [`teleop-pipeline`](https://github.com/abyyworld/teleop-pipeline),
 which produces the checkpoints and the lineage records this consumes.
 
