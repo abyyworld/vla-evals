@@ -208,14 +208,14 @@ src/policy_evals/
   compare.py      the regression gate and its three verdicts
   report.py       Markdown reports for PR comments
   adapters/       policy interface, reference baselines, checkpoint loader
-tests/            40 tests, incl. injected regressions the gate must catch
+tests/            42 tests, incl. injected regressions the gate must catch
 ```
 
 ## Commands
 
 ```bash
 make install-all   # venv + torch, for evaluating real checkpoints
-make test          # 40 tests
+make test          # 42 tests
 make baselines     # confirm the suite still discriminates
 make demo-gate     # inject a regression and watch the gate reject it
 
