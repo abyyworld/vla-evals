@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -128,6 +129,26 @@ class BenchmarkResult:
         )
 
 
+def resolve_spec_path(path: str | Path) -> Path:
+    """Find a benchmark spec, including one bundled into a frozen binary.
+
+    The packaged builds carry `conf/` inside the executable and unpack it to a
+    temporary directory at startup, so a relative default like
+    `conf/benchmarks/manipulation_v1.yaml` resolves against wherever the user is
+    standing rather than against the bundle. Falling back to the bundled copy is
+    what lets a downloaded binary run with no repository checked out.
+    """
+    candidate = Path(path)
+    if candidate.exists():
+        return candidate
+    bundled = getattr(sys, "_MEIPASS", None)
+    if bundled:
+        inside = Path(bundled) / candidate
+        if inside.exists():
+            return inside
+    return candidate
+
+
 @dataclass
 class BenchmarkSpec:
     name: str
@@ -137,7 +158,7 @@ class BenchmarkSpec:
 
     @staticmethod
     def load(path: Path) -> BenchmarkSpec:
-        data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        data = yaml.safe_load(resolve_spec_path(path).read_text(encoding="utf-8"))
         return BenchmarkSpec(
             name=data["name"],
             episodes_per_task=int(data.get("episodes_per_task", 50)),

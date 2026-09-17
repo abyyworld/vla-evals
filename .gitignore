@@ -20,3 +20,8 @@ htmlcov/
 .DS_Store
 .idea/
 .vscode/
+
+# PyInstaller
+/build/
+/dist/
+*.spec

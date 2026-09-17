@@ -1,0 +1,94 @@
+name: release
+
+# Standalone builds, so the suite can be run by someone who has no Python and
+# no intention of installing one. The binary carries conf/ inside it and falls
+# back to that copy, so it works from an empty directory.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: policy-evals-linux-x86_64
+            binary: policy-evals
+          - os: macos-latest
+            asset: policy-evals-macos-arm64
+            binary: policy-evals
+          - os: windows-latest
+            asset: policy-evals-windows-x86_64.exe
+            binary: policy-evals.exe
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pyinstaller==6.22.3
+
+      - name: Build
+        run: |
+          # --add-data uses the platform path separator, which is ';' on
+          # Windows and ':' everywhere else.
+          if [ "$RUNNER_OS" = "Windows" ]; then SEP=';'; else SEP=':'; fi
+          pyinstaller --onefile --name policy-evals \
+            --add-data "conf${SEP}conf" \
+            --collect-submodules policy_evals \
+            packaging/entry.py
+
+      - name: The binary must run with no repository and no Python
+        run: |
+          # An empty directory, deliberately: the point of the build is that it
+          # does not need the checkout it was made from. Running from the repo
+          # root would find conf/ on disk and prove nothing.
+          mkdir -p "${RUNNER_TEMP}/smoke"
+          cp "dist/${{ matrix.binary }}" "${RUNNER_TEMP}/smoke/"
+          cd "${RUNNER_TEMP}/smoke"
+          ./${{ matrix.binary }} version
+          ./${{ matrix.binary }} run scripted | tee out.txt
+          grep -q "overall 100.0%" out.txt
+          ./${{ matrix.binary }} run "scripted+noise:0.12" | tee noisy.txt
+          # The suite has to still discriminate inside the packaged build, or
+          # the binary is shipping a benchmark that cannot fail.
+          grep -q "overall 55.0%" noisy.txt
+
+      - name: Name the asset for its platform
+        run: mv "dist/${{ matrix.binary }}" "dist/${{ matrix.asset }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

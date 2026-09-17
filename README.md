@@ -27,6 +27,19 @@ py -3.12 -m venv .venv
 
 Tested on Linux, macOS and Windows in CI.
 
+**Or download a build and skip all of that.** Every release carries a
+standalone binary for Linux, macOS and Windows with the benchmark suite inside
+it, so it runs from an empty directory with no Python installed:
+
+```
+./policy-evals run scripted              # 100.0%, the suite's ceiling
+./policy-evals run scripted+noise:0.12   # 55.0%, the suite still discriminates
+```
+
+Both of those are asserted in the release job, on each platform, against the
+binary it just built. A build that shipped a benchmark which could no longer
+fail would not get published.
+
 Downstream of [`teleop-pipeline`](https://github.com/abyyworld/teleop-pipeline),
 which produces the checkpoints and the lineage records this consumes.
 
