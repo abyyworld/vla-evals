@@ -57,7 +57,7 @@ jobs:
       - run: |
           pip install --upgrade pip
           pip install -e '.[dev]'
-      - run: pytest -q --cov=policy_evals --cov-report=term-missing
+      - run: pytest --cov=policy_evals --cov-report=term-missing
 
   suite-sanity:
     # A benchmark whose trivial baselines score well is measuring the
