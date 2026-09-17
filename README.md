@@ -28,13 +28,24 @@ py -3.12 -m venv .venv
 Tested on Linux, macOS and Windows in CI.
 
 **Or download a build and skip all of that.** Every release carries a
-standalone binary for Linux, macOS and Windows with the benchmark suite inside
-it, so it runs from an empty directory with no Python installed:
+standalone binary with the benchmark suite inside it, so it runs from an empty
+directory with no Python installed:
+
+| Platform | Download |
+| --- | --- |
+| macOS (Apple silicon) | [policy-evals-macos-arm64](https://github.com/abyyworld/vla-evals/releases/latest/download/policy-evals-macos-arm64) |
+| Windows (x86-64) | [policy-evals-windows-x86_64.exe](https://github.com/abyyworld/vla-evals/releases/latest/download/policy-evals-windows-x86_64.exe) |
+| Linux (x86-64) | [policy-evals-linux-x86_64](https://github.com/abyyworld/vla-evals/releases/latest/download/policy-evals-linux-x86_64) |
 
 ```
+chmod +x policy-evals-*                  # macOS and Linux only
 ./policy-evals run scripted              # 100.0%, the suite's ceiling
 ./policy-evals run scripted+noise:0.12   # 55.0%, the suite still discriminates
 ```
+
+macOS quarantines binaries downloaded from a browser. Either fetch it with
+`curl -L -O <url>`, or clear the flag with
+`xattr -d com.apple.quarantine policy-evals-macos-arm64`.
 
 Both of those are asserted in the release job, on each platform, against the
 binary it just built. A build that shipped a benchmark which could no longer
